@@ -37,11 +37,12 @@ export default function () {
   const { stories } = useContext<StoriesContextInterface>(StoriesContext);
 
   usePreLoader(stories, currentId, preloadCount);
+  const hasEndedRef = useRef(false);
 
   useEffect(() => {
     if (typeof currentIndex === "number") {
       if (currentIndex >= 0 && currentIndex < stories.length) {
-        setCurrentIdWrapper(() => currentIndex);
+        setCurrentId(currentIndex);
         setPause(false);
         setBufferAction(false);
         console.log("from lib", currentIndex);
@@ -93,10 +94,11 @@ export default function () {
   };
 
   const previous = () => {
-    if (onPrevious != undefined) {
-      onPrevious();
-    }
-    setCurrentIdWrapper((prev) => (prev > 0 ? prev - 1 : prev));
+    hasEndedRef.current = false;
+    setPause(false);
+    setBufferAction(false);
+
+    setCurrentId((prev) => (prev > 0 ? prev - 1 : prev));
   };
 
   const next = (options?: { isSkippedByUser?: boolean }) => {
@@ -123,9 +125,17 @@ export default function () {
   };
 
   const updateNextStoryId = () => {
-    setCurrentIdWrapper((prev) => {
-      if (prev < stories.length - 1) return prev + 1;
-      onAllStoriesEnd && onAllStoriesEnd(currentId, stories);
+    setCurrentId((prev) => {
+      if (prev < stories.length - 1) {
+        hasEndedRef.current = false;
+        return prev + 1;
+      }
+
+      if (!hasEndedRef.current) {
+        hasEndedRef.current = true;
+        onAllStoriesEnd && onAllStoriesEnd(prev, stories);
+      }
+
       return prev;
     });
   };
