@@ -83,20 +83,32 @@ export default function () {
   };
 
   const toggleState = (action: string, bufferAction?: boolean) => {
-    setPause(action === "pause");
+    // Chỉ update local state nếu KHÔNG bị control từ props
+    if (typeof isPaused !== "boolean") {
+      setPause(action === "pause");
+    }
     setBufferAction(!!bufferAction);
   };
 
-  const setCurrentIdWrapper = (callback) => {
+  const setCurrentIdWrapper = (callback, shouldPause = true) => {
     setCurrentId(callback);
-    toggleState("pause", true);
+
+    // Chỉ control pause nếu KHÔNG có isPaused từ props
+    if (typeof isPaused !== "boolean") {
+      if (shouldPause) {
+        toggleState("pause", true);
+      } else {
+        toggleState("play", false);
+      }
+    }
+    // Nếu có isPaused từ props, để props control hoàn toàn
   };
 
   const previous = () => {
     if (onPrevious != undefined) {
       onPrevious();
     }
-    setCurrentIdWrapper((prev) => (prev > 0 ? prev - 1 : prev));
+    setCurrentIdWrapper((prev) => (prev > 0 ? prev - 1 : prev), false); // Không pause
   };
 
   const next = (options?: { isSkippedByUser?: boolean }) => {
@@ -113,13 +125,14 @@ export default function () {
     }
   };
 
+  // Cập nhật các hàm update
   const updateNextStoryIdForLoop = () => {
     setCurrentIdWrapper((prev) => {
       if (prev >= stories.length - 1) {
         onAllStoriesEnd && onAllStoriesEnd(currentId, stories);
       }
       return (prev + 1) % stories.length;
-    });
+    }, false); // Không pause
   };
 
   const updateNextStoryId = () => {
@@ -127,7 +140,7 @@ export default function () {
       if (prev < stories.length - 1) return prev + 1;
       onAllStoriesEnd && onAllStoriesEnd(currentId, stories);
       return prev;
-    });
+    }, false); // Không pause
   };
 
   const debouncePause = (e: React.MouseEvent | React.TouchEvent) => {
