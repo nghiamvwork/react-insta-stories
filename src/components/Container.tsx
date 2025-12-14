@@ -38,22 +38,22 @@ export default function () {
 
   usePreLoader(stories, currentId, preloadCount);
 
+  // Thêm một setter riêng cho external control
+  const setCurrentIdFromProps = (id: number) => {
+    setCurrentId(id);
+    // Không pause, để story tiếp tục chạy tự nhiên
+  };
+
   useEffect(() => {
     if (typeof currentIndex === "number") {
       if (currentIndex >= 0 && currentIndex < stories.length) {
-        setCurrentIdWrapper(() => currentIndex);
-        // setPause(false);
-        // setBufferAction(false);
+        setCurrentIdFromProps(currentIndex);
         console.log("currentIndex from lib", currentIndex);
       } else {
-        console.error(
-          "Index out of bounds. Current index was set to value more than the length of stories array.",
-          currentIndex
-        );
+        console.error("Index out of bounds...", currentIndex);
       }
     }
   }, [currentIndex]);
-
   useEffect(() => {
     if (typeof isPaused === "boolean") {
       setPause(isPaused);
