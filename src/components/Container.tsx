@@ -45,7 +45,7 @@ export default function () {
         setCurrentId(currentIndex);
         setPause(false);
         setBufferAction(false);
-        console.log("from lib", currentIndex);
+        console.log("currentIndex from lib", currentIndex);
       } else {
         console.error(
           "Index out of bounds. Current index was set to value more than the length of stories array.",
